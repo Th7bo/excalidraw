@@ -1,0 +1,38 @@
+
+services:
+  excalidraw:
+    build:
+      context: .
+      target: production
+    restart: unless-stopped
+    depends_on:
+      - excalidraw-storage-backend
+      - excalidraw-room
+
+  excalidraw-storage-backend:
+    build:
+      context: https://github.com/kitsteam/excalidraw-storage-backend.git#main
+      target: production
+    restart: unless-stopped
+    environment:
+      STORAGE_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      - postgres
+
+  excalidraw-room:
+    build:
+      context: https://github.com/kitsteam/excalidraw-room.git#master
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
